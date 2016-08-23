@@ -8,6 +8,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -46,6 +47,7 @@ public class SplashActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     startActivity(new Intent(SplashActivity.this,MainActivity.class));
+                    finish();
                     break;
                 default:
                     break;
@@ -104,4 +106,5 @@ public class SplashActivity extends AppCompatActivity {
         tvSplashName = (TextView) findViewById(R.id.tv_splash_name);
 
     }
+
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="果壳精选"
+        android:id="@+id/navigation_item_guoke"
+        />
+    <item
+        android:id="@+id/navigation_item_douban"
+        android:title="豆瓣一刻" />
+</menu>

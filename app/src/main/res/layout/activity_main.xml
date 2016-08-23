@@ -27,8 +27,23 @@
                 >
 
             </android.support.v7.widget.Toolbar>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </LinearLayout>
 
         </RelativeLayout>
 
+        <android.support.design.widget.NavigationView
+            android:id="@+id/navigation_view"
+            app:headerLayout="@layout/navigation_header"
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            app:menu="@menu/navigation_menu"
+            >
+
+        </android.support.design.widget.NavigationView>
     </android.support.v4.widget.DrawerLayout>
 </LinearLayout>
