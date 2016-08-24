@@ -1,11 +1,12 @@
 package com.example.coderchang.onedaily.doman;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by coderchang on 16/8/23.
  */
-public class Story {
+public class Story implements Serializable{
 
     private String title;
     private String ga_prefix;

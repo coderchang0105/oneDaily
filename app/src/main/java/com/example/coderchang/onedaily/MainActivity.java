@@ -1,5 +1,6 @@
 package com.example.coderchang.onedaily;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewPager;
@@ -22,10 +23,10 @@ import com.example.coderchang.onedaily.adapter.RVMainAdapter;
 import com.example.coderchang.onedaily.doman.News;
 import com.example.coderchang.onedaily.doman.Story;
 import com.example.coderchang.onedaily.doman.TopStory;
+import com.example.coderchang.onedaily.ui.NewsDetailActivity;
 import com.example.coderchang.onedaily.utils.MyThread;
 import com.example.coderchang.onedaily.utils.NetUtil;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -89,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(Story story) {
                 Toast.makeText(MainActivity.this, story.getTitle(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, NewsDetailActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("story", story);
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         });
 

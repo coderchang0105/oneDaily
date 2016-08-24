@@ -1,9 +1,11 @@
 package com.example.coderchang.onedaily.doman;
 
+import java.io.Serializable;
+
 /**
  * Created by coderchang on 16/8/23.
  */
-public class TopStory {
+public class TopStory implements Serializable{
     private String image;
     private int type;
     private int id;
