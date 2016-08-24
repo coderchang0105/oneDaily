@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,14 +31,21 @@ public class RVMainAdapter extends RecyclerView.Adapter {
     private View mCarouselView;
     public static final int TYPE_CAROUSEL = 0;
     public static final int TYPE_NORMAL = 1;
+    public static final int TYPE_FOOTER = 2;
 
-
+    private OnLoadListener mListener;
     public RVMainAdapter(Context context, List<Story> data) {
         this.mContext = context;
         this.mData = data;
     }
+    public void addData(List<Story> data){
+        mData.addAll(data);
+        notifyDataSetChanged();
+    }
 
-
+    public void setOnLoadListener(OnLoadListener listener) {
+        this.mListener = listener;
+    }
     public void setCarouselView(View carouselView) {
         this.mCarouselView = carouselView;
     }
@@ -46,6 +54,8 @@ public class RVMainAdapter extends RecyclerView.Adapter {
     public int getItemViewType(int position) {
         if (position == 0) {
             return TYPE_CAROUSEL;
+        } else if (position == mData.size() + 1) {
+            return TYPE_FOOTER;
         } else {
             return TYPE_NORMAL;
         }
@@ -62,6 +72,11 @@ public class RVMainAdapter extends RecyclerView.Adapter {
             NormalViewHolder viewHolder = new NormalViewHolder(view);
             return viewHolder;
         }
+        if (viewType == TYPE_FOOTER) {
+            View view = LayoutInflater.from(mContext).inflate(R.layout.rv_main_booter, parent, false);
+            BootViewHolder viewHolder = new BootViewHolder(view);
+            return viewHolder;
+        }
         return null;
     }
 
@@ -69,7 +84,8 @@ public class RVMainAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof CarouselViewHolder) {
             CarouselViewHolder viewHolder = (CarouselViewHolder) holder;
-        } else if (holder instanceof NormalViewHolder) {
+        }
+        if (holder instanceof NormalViewHolder) {
             final Handler handler = new Handler();
             Story story = mData.get(position-1);
             final NormalViewHolder viewHolder = (NormalViewHolder) holder;
@@ -91,12 +107,17 @@ public class RVMainAdapter extends RecyclerView.Adapter {
                 }
             });
         }
+        if (holder instanceof BootViewHolder) {
+            BootViewHolder viewHolder = (BootViewHolder) holder;
+            Log.d("TAG", "加载数据.....");
+            mListener.onLoad();
+        }
 
     }
 
     @Override
     public int getItemCount() {
-        return mData.size() + 1;
+        return mData.size() + 2;
     }
 
     public static class NormalViewHolder extends RecyclerView.ViewHolder {
@@ -118,4 +139,14 @@ public class RVMainAdapter extends RecyclerView.Adapter {
         }
     }
 
+    public static class BootViewHolder extends RecyclerView.ViewHolder {
+        public BootViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+
+    public interface OnLoadListener{
+        void onLoad();
+    }
 }

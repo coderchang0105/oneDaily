@@ -1,5 +1,6 @@
 package com.example.coderchang.onedaily;
 
+import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -51,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPager vpMainCarousel;
 
+    private boolean loading = false;//是否在上拉加载
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +72,14 @@ public class MainActivity extends AppCompatActivity {
         vpMainCarousel.setOffscreenPageLimit(3);
         vpMainCarousel.setCurrentItem(0);
         vpMainCarousel.setAdapter(carouselAdapter);
+
+        adapter.setOnLoadListener(new RVMainAdapter.OnLoadListener() {
+            @Override
+            public void onLoad() {
+                new StoryTask().execute("http://news.at.zhihu.com/api/4/news/before/20160823");
+            }
+        });
+
     }
 
     private void initData() {
@@ -110,29 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void parseJSONWithJSONObject(String response) {
-        try {
-            JSONObject object = new JSONObject(response);
-            JSONArray jsonArray = object.getJSONArray("stories");
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject object1 = jsonArray.getJSONObject(i);
-                Story story = new Story();
-                story.setTitle(object1.getString("title"));
-                story.setGa_prefix(object1.getString("ga_prefix"));
-                JSONArray arrayImages = object1.getJSONArray("images");
-                List<String> images = new ArrayList<>();
-                for (int j = 0; j < arrayImages.length(); j++) {
-                    images.add(arrayImages.getString(j));
-                }
-                story.setImages(images);
-                story.setType(object1.getInt("type"));
-                story.setId(object1.getInt("id"));
-                storyList.add(story);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     private void formatUrl(List<Story> storyList) {
         for (int i = 0; i < storyList.size(); i++) {
@@ -196,4 +185,68 @@ public class MainActivity extends AppCompatActivity {
 
         });
     }
+
+
+    class StoryTask extends AsyncTask<String, Void, List<Story>> {
+        private List<Story> tempStoryList;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected List<Story> doInBackground(String... params) {
+
+            NetUtil.syncStringGet(params[0], new NetUtil.StringCallback() {
+                @Override
+                public void onSuccess(String response) {
+                    Gson gson = new Gson();
+                    News news = gson.fromJson(response, News.class);
+                    tempStoryList = news.getStories();
+                    formatUrl(tempStoryList);
+                }
+
+                @Override
+                public void onFail(Exception e) {
+
+                }
+            });
+            return tempStoryList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Story> stories) {
+            super.onPostExecute(stories);
+            adapter.addData(stories);
+        }
+    }
+
+
+
+
+    private void parseJSONWithJSONObject(String response) {
+        try {
+            JSONObject object = new JSONObject(response);
+            JSONArray jsonArray = object.getJSONArray("stories");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject object1 = jsonArray.getJSONObject(i);
+                Story story = new Story();
+                story.setTitle(object1.getString("title"));
+                story.setGa_prefix(object1.getString("ga_prefix"));
+                JSONArray arrayImages = object1.getJSONArray("images");
+                List<String> images = new ArrayList<>();
+                for (int j = 0; j < arrayImages.length(); j++) {
+                    images.add(arrayImages.getString(j));
+                }
+                story.setImages(images);
+                story.setType(object1.getInt("type"));
+                story.setId(object1.getInt("id"));
+                storyList.add(story);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
