@@ -25,25 +25,39 @@ public class CarouselAdapter extends PagerAdapter{
     private List<TopStory> mData;
     private Context mContext;
     private List<View> views;
+
+    private OnItemClickListener mListener;
     public CarouselAdapter(Context context,List<TopStory> data) {
         this.mData = data;
         this.mContext = context;
         views = new ArrayList<>();
     }
 
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.mListener = listener;
+    }
     @Override
     public int getCount() {
         return mData.size();
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
+    public Object instantiateItem(ViewGroup container, final int position) {
 
         final Handler handler = new Handler();
         View view = LayoutInflater.from(mContext).inflate(R.layout.carousel_main_item,null);
+
         TextView textView = (TextView) view.findViewById(R.id.tv_carousel_title);
         textView.setText(mData.get(position).getTitle());
         final ImageView imageView = (ImageView) view.findViewById(R.id.iv_carousel_pic);
+
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onItemClick(mData.get(position));
+            }
+        });
+
         NetUtil.asyncImageGet(mData.get(position).getImage(), new NetUtil.ImageCallback() {
             @Override
             public void onSuccess(final Bitmap bitmap) {
@@ -73,5 +87,9 @@ public class CarouselAdapter extends PagerAdapter{
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView(views.get(position));
+    }
+
+    public interface OnItemClickListener{
+        void onItemClick(TopStory topStory);
     }
 }

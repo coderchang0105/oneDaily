@@ -69,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
         rvMainDaily.setLayoutManager(new LinearLayoutManager(this));
         rvMainDaily.setAdapter(adapter);
         carouselAdapter = new CarouselAdapter(MainActivity.this, topStoryList);
+        carouselAdapter.setOnItemClickListener(new CarouselAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(TopStory topStory) {
+                Toast.makeText(MainActivity.this, topStory.getTitle(), Toast.LENGTH_SHORT).show();
+            }
+        });
         vpMainCarousel.setOffscreenPageLimit(3);
         vpMainCarousel.setCurrentItem(0);
         vpMainCarousel.setAdapter(carouselAdapter);
@@ -77,6 +83,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLoad() {
                 new StoryTask().execute("http://news.at.zhihu.com/api/4/news/before/20160823");
+            }
+        });
+        adapter.setOnItemClickListener(new RVMainAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Story story) {
+                Toast.makeText(MainActivity.this, story.getTitle(), Toast.LENGTH_SHORT).show();
             }
         });
 

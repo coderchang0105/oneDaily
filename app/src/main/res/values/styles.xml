@@ -7,5 +7,11 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+    <style name="MoreOverFlowLight" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
+    </style>
+    <style name="OverFlow" parent="android:style/Widget.Holo.Light.ActionButton.Overflow">
+        <item name="android:src">@mipmap/tool_bar_moreoverflow_light</item>
+    </style>
 
 </resources>

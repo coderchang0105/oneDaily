@@ -34,9 +34,17 @@ public class RVMainAdapter extends RecyclerView.Adapter {
     public static final int TYPE_FOOTER = 2;
 
     private OnLoadListener mListener;
+
+    private OnItemClickListener clickListener;
+
+
     public RVMainAdapter(Context context, List<Story> data) {
         this.mContext = context;
         this.mData = data;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.clickListener = listener;
     }
     public void addData(List<Story> data){
         mData.addAll(data);
@@ -87,8 +95,14 @@ public class RVMainAdapter extends RecyclerView.Adapter {
         }
         if (holder instanceof NormalViewHolder) {
             final Handler handler = new Handler();
-            Story story = mData.get(position-1);
+            final Story story = mData.get(position-1);
             final NormalViewHolder viewHolder = (NormalViewHolder) holder;
+            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clickListener.onItemClick(story);
+                }
+            });
             viewHolder.tvRVItemTitle.setText(story.getTitle());
             NetUtil.asyncImageGet(story.getImages().get(0), new NetUtil.ImageCallback() {
                 @Override
@@ -148,5 +162,9 @@ public class RVMainAdapter extends RecyclerView.Adapter {
 
     public interface OnLoadListener{
         void onLoad();
+    }
+
+    public interface OnItemClickListener{
+        void onItemClick(Story story);
     }
 }
