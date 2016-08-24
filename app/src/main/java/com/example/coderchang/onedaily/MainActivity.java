@@ -4,17 +4,40 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
+import com.example.coderchang.onedaily.adapter.RVMainAdapter;
+import com.example.coderchang.onedaily.doman.News;
+import com.example.coderchang.onedaily.doman.Story;
+import com.example.coderchang.onedaily.utils.MyThread;
+import com.example.coderchang.onedaily.utils.NetUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    private RecyclerView rvMainDaily;
+    private RVMainAdapter adapter;
+    private News news;
+
+    private List<Story> storyList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,10 +46,84 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initNavigationView();
         initView();
+        initData();
+        adapter = new RVMainAdapter(MainActivity.this,storyList);
+        rvMainDaily.setLayoutManager(new LinearLayoutManager(this));
+        rvMainDaily.setAdapter(adapter);
+    }
+
+    private void initData() {
+        MyThread myThread = new MyThread("http://news-at.zhihu.com/api/4/news/latest", new NetUtil.StringCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.d("TAG", "news latest = " + response);
+                //parseJSONWithJSONObject(response);
+
+                parseJSONWithGson(response);
+                formatUrl(storyList);
+                for (int i = 0; i < storyList.size(); i++) {
+                    Log.d("TAG", "formatted story = " + storyList.get(i).getImages().get(0));
+
+                }
+
+
+            }
+
+            @Override
+            public void onFail(Exception e) {
+
+            }
+        });
+        myThread.start();
+        try {
+            myThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void parseJSONWithGson(String response) {
+        Gson gson = new Gson();
+        News news = gson.fromJson(response, News.class);
+        storyList = news.getStories();
+
+    }
+
+    private void parseJSONWithJSONObject(String response) {
+        try {
+            JSONObject object = new JSONObject(response);
+            JSONArray jsonArray = object.getJSONArray("stories");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject object1 = jsonArray.getJSONObject(i);
+                Story story = new Story();
+                story.setTitle(object1.getString("title"));
+                story.setGa_prefix(object1.getString("ga_prefix"));
+                JSONArray arrayImages = object1.getJSONArray("images");
+                List<String> images = new ArrayList<>();
+                for (int j = 0; j < arrayImages.length(); j++) {
+                    images.add(arrayImages.getString(j));
+                }
+                story.setImages(images);
+                story.setType(object1.getInt("type"));
+                story.setId(object1.getInt("id"));
+                storyList.add(story);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void formatUrl(List<Story> storyList) {
+        for (int i = 0; i < storyList.size(); i++) {
+            String formattedUrl = storyList.get(i).getImages().get(0).replaceAll("\"", "");
+            storyList.get(i).getImages().set(0,formattedUrl);
+        }
     }
 
     private void initView() {
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        rvMainDaily = (RecyclerView) findViewById(R.id.rv_main_daily);
     }
 
     private void initNavigationView() {
