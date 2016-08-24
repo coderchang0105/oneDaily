@@ -24,55 +24,82 @@ import javax.net.ssl.HandshakeCompletedEvent;
 /**
  * Created by coderchang on 16/8/23.
  */
-public class RVMainAdapter extends RecyclerView.Adapter{
+public class RVMainAdapter extends RecyclerView.Adapter {
     private Context mContext;
     private List<Story> mData;
+    private View mCarouselView;
+    public static final int TYPE_CAROUSEL = 0;
+    public static final int TYPE_NORMAL = 1;
 
-    public RVMainAdapter(Context context,List<Story> data) {
+
+    public RVMainAdapter(Context context, List<Story> data) {
         this.mContext = context;
         this.mData = data;
     }
 
+
+    public void setCarouselView(View carouselView) {
+        this.mCarouselView = carouselView;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (position == 0) {
+            return TYPE_CAROUSEL;
+        } else {
+            return TYPE_NORMAL;
+        }
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(mContext).inflate(R.layout.rv_main_item, parent, false);
-        NormalViewHolder holder = new NormalViewHolder(itemView);
-        return holder;
+        if (viewType == TYPE_CAROUSEL) {
+            CarouselViewHolder viewHolder = new CarouselViewHolder(mCarouselView);
+            return viewHolder;
+        }
+        if (viewType == TYPE_NORMAL) {
+            View view = LayoutInflater.from(mContext).inflate(R.layout.rv_main_item, parent, false);
+            NormalViewHolder viewHolder = new NormalViewHolder(view);
+            return viewHolder;
+        }
+        return null;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        final Handler handler = new Handler();
-        Story story = mData.get(position);
-        final NormalViewHolder viewHolder = (NormalViewHolder) holder;
-        viewHolder.tvRVItemTitle.setText(story.getTitle());
-        NetUtil.asyncImageGet(story.getImages().get(0), new NetUtil.ImageCallback() {
-            @Override
-            public void onSuccess(final Bitmap bitmap) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        viewHolder.ivRVItemPic.setImageBitmap(bitmap);
-                    }
-                });
-            }
+        if (holder instanceof CarouselViewHolder) {
+            CarouselViewHolder viewHolder = (CarouselViewHolder) holder;
+        } else if (holder instanceof NormalViewHolder) {
+            final Handler handler = new Handler();
+            Story story = mData.get(position-1);
+            final NormalViewHolder viewHolder = (NormalViewHolder) holder;
+            viewHolder.tvRVItemTitle.setText(story.getTitle());
+            NetUtil.asyncImageGet(story.getImages().get(0), new NetUtil.ImageCallback() {
+                @Override
+                public void onSuccess(final Bitmap bitmap) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            viewHolder.ivRVItemPic.setImageBitmap(bitmap);
+                        }
+                    });
+                }
 
-            @Override
-            public void onFail(Exception e) {
-                Toast.makeText(mContext, "获取ivRvItemPic失败", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
+                @Override
+                public void onFail(Exception e) {
+                    Toast.makeText(mContext, "获取ivRvItemPic失败", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
     }
 
     @Override
     public int getItemCount() {
-        return mData.size();
+        return mData.size() + 1;
     }
 
-    public static class NormalViewHolder extends RecyclerView.ViewHolder{
+    public static class NormalViewHolder extends RecyclerView.ViewHolder {
 
         public NormalViewHolder(View itemView) {
             super(itemView);
@@ -83,4 +110,12 @@ public class RVMainAdapter extends RecyclerView.Adapter{
         TextView tvRVItemTitle;
         ImageView ivRVItemPic;
     }
+
+    public static class CarouselViewHolder extends RecyclerView.ViewHolder {
+
+        public CarouselViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
 }
