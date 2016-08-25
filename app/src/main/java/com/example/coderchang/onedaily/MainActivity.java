@@ -2,6 +2,7 @@ package com.example.coderchang.onedaily;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -15,7 +16,10 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.coderchang.onedaily.adapter.CarouselAdapter;
@@ -24,6 +28,7 @@ import com.example.coderchang.onedaily.doman.News;
 import com.example.coderchang.onedaily.doman.Story;
 import com.example.coderchang.onedaily.doman.TopStory;
 import com.example.coderchang.onedaily.ui.NewsDetailActivity;
+import com.example.coderchang.onedaily.utils.DateUtils;
 import com.example.coderchang.onedaily.utils.MyThread;
 import com.example.coderchang.onedaily.utils.NetUtil;
 import com.google.gson.Gson;
@@ -34,6 +39,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
@@ -42,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvMainDaily;
     private RVMainAdapter adapter;
     private News news;
+    private int currentItem;
+
+    private LinearLayout llPoints;
+
+    private Handler handler = new Handler();
 
     private CarouselAdapter carouselAdapter;
 
@@ -55,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean loading = false;//是否在上拉加载
 
+    private String date;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initNavigationView();
         initView();
+        initPointsGroup();
+        addTimerTask();
         initData();
         adapter = new RVMainAdapter(MainActivity.this, storyList);
         adapter.setCarouselView(carouselView);
@@ -74,16 +90,41 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(TopStory topStory) {
                 Toast.makeText(MainActivity.this, topStory.getTitle(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, NewsDetailActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("topStory", topStory);
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         });
         vpMainCarousel.setOffscreenPageLimit(3);
         vpMainCarousel.setCurrentItem(0);
         vpMainCarousel.setAdapter(carouselAdapter);
+        vpMainCarousel.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                currentItem = position;
+                resetIndicator();
+                ImageView imageView = (ImageView) llPoints.getChildAt(position);
+                imageView.setImageResource(R.mipmap.page_indicator_focused);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
         adapter.setOnLoadListener(new RVMainAdapter.OnLoadListener() {
             @Override
             public void onLoad() {
-                new StoryTask().execute("http://news.at.zhihu.com/api/4/news/before/20160823");
+                Log.d("TAG", "date = " + date);
+                date = DateUtils.preDate(date);
+                new StoryTask().execute("http://news.at.zhihu.com/api/4/news/before/" + date);
             }
         });
         adapter.setOnItemClickListener(new RVMainAdapter.OnItemClickListener() {
@@ -98,6 +139,48 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void addTimerTask() {
+        timer = new Timer(true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        resetIndicator();
+                        if (currentItem == 4) {
+                            currentItem = 0;
+                            vpMainCarousel.setCurrentItem(0);
+                        } else {
+                            currentItem++;
+                            vpMainCarousel.setCurrentItem(currentItem);
+
+                        }
+                        ImageView imageView = (ImageView) llPoints.getChildAt(currentItem);
+                        imageView.setImageResource(R.mipmap.page_indicator_focused);
+                    }
+                });
+            }
+        },0,7000);
+    }
+
+    private void initPointsGroup() {
+        llPoints = (LinearLayout) carouselView.findViewById(R.id.ll_select_points);
+        for (int i = 0; i < 5; i++) {
+            ImageView imageView = new ImageView(this);
+            if (i == 0) {
+                imageView.setImageResource(R.mipmap.page_indicator_focused);
+            } else {
+                imageView.setImageResource(R.mipmap.page_indicator_unfocused);
+            }
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            layoutParams.leftMargin = 5;
+            layoutParams.rightMargin = 5;
+            llPoints.addView(imageView,layoutParams);
+        }
     }
 
     private void initData() {
@@ -134,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
     private void parseJSONWithGson(String response) {
         Gson gson = new Gson();
         News news = gson.fromJson(response, News.class);
+        date = news.getDate();
         storyList = news.getStories();
         topStoryList = news.getTop_stories();
 
@@ -267,4 +351,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private Timer timer;
+
+    private void resetIndicator() {
+        for (int i = 0; i < llPoints.getChildCount(); i++) {
+            ImageView imageView = (ImageView) llPoints.getChildAt(i);
+            imageView.setImageResource(R.mipmap.page_indicator_unfocused);
+        }
+    }
 }
