@@ -27,6 +27,7 @@ import com.example.coderchang.onedaily.adapter.RVMainAdapter;
 import com.example.coderchang.onedaily.doman.News;
 import com.example.coderchang.onedaily.doman.Story;
 import com.example.coderchang.onedaily.doman.TopStory;
+import com.example.coderchang.onedaily.ui.MyCollectionActivity;
 import com.example.coderchang.onedaily.ui.NewsDetailActivity;
 import com.example.coderchang.onedaily.utils.DateUtils;
 import com.example.coderchang.onedaily.utils.MyThread;
@@ -250,6 +251,10 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.navigation_item_douban:
                         Toast.makeText(MainActivity.this, "douban", Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.navigation_item_important:
+                        Toast.makeText(MainActivity.this, "我的收藏", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(MainActivity.this, MyCollectionActivity.class));
                         break;
                     default:
                         break;

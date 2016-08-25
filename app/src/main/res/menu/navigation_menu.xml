@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:title="收藏夹"
+        android:id="@+id/navigation_item_important"
+        android:icon="@mipmap/tool_bar_important"
+        />
     <item android:title="果壳精选"
         android:id="@+id/navigation_item_guoke"
         />
