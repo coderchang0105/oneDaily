@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.example.coderchang.onedaily.R;
 import com.example.coderchang.onedaily.db.ImportantDatabaseHelper;
@@ -28,7 +29,7 @@ import com.google.gson.Gson;
 /**
  * Created by coderchang on 16/8/24.
  */
-public class NewsDetailActivity extends AppCompatActivity{
+public class NewsDetailActivity extends BaseActivity{
     private WebView webViewNewsDetail;
     private Handler handler = new Handler();
     private Toolbar tbNewsDetail;
@@ -36,11 +37,10 @@ public class NewsDetailActivity extends AppCompatActivity{
     private TopStory topStory;
     private SimpleStory simpleStory;
     private ImportantDatabaseHelper helper;
+    private NewsDetail newsDetail;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_news_detail);
         initView();
         initToolbar();
         Intent intent = getIntent();
@@ -64,11 +64,11 @@ public class NewsDetailActivity extends AppCompatActivity{
                         @Override
                         public void onSuccess(String response) {
                             Gson gson = new Gson();
-                            final NewsDetail detail = gson.fromJson(response, NewsDetail.class);
+                            newsDetail = gson.fromJson(response, NewsDetail.class);
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    String htmlData = HtmlUtil.createHtmlData(detail);
+                                    String htmlData = HtmlUtil.createHtmlData(newsDetail);
                                     webViewNewsDetail.loadData(htmlData, HtmlUtil.MIME_TYPE, HtmlUtil.ENCODING);
                                 }
                             });
@@ -90,11 +90,11 @@ public class NewsDetailActivity extends AppCompatActivity{
                         @Override
                         public void onSuccess(String response) {
                             Gson gson = new Gson();
-                            final NewsDetail detail = gson.fromJson(response, NewsDetail.class);
+                            newsDetail = gson.fromJson(response, NewsDetail.class);
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    String htmlData = HtmlUtil.createHtmlData(detail);
+                                    String htmlData = HtmlUtil.createHtmlData(newsDetail);
                                     webViewNewsDetail.loadData(htmlData, HtmlUtil.MIME_TYPE, HtmlUtil.ENCODING);
                                 }
                             });
@@ -115,11 +115,11 @@ public class NewsDetailActivity extends AppCompatActivity{
                         @Override
                         public void onSuccess(String response) {
                             Gson gson = new Gson();
-                            final NewsDetail detail = gson.fromJson(response, NewsDetail.class);
+                            newsDetail = gson.fromJson(response, NewsDetail.class);
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    String htmlData = HtmlUtil.createHtmlData(detail);
+                                    String htmlData = HtmlUtil.createHtmlData(newsDetail);
                                     webViewNewsDetail.loadData(htmlData, HtmlUtil.MIME_TYPE, HtmlUtil.ENCODING);
                                 }
                             });
@@ -137,6 +137,11 @@ public class NewsDetailActivity extends AppCompatActivity{
 
     }
 
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_news_detail;
+    }
+
     private void initToolbar() {
         tbNewsDetail.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,10 +155,16 @@ public class NewsDetailActivity extends AppCompatActivity{
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_detail_share:
-
+                        Intent shareIntent = new Intent();
+                        shareIntent.setAction(Intent.ACTION_SEND);
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, newsDetail.getShare_url());
+                        shareIntent.setType("text/plain");
+                        //设置分享列表的标题，并且每次都显示分享列表
+                        startActivity(Intent.createChooser(shareIntent, "分享到"));
                         break;
                     case R.id.action_detail_important:
                         addStoryToDatabase();
+                        Toast.makeText(NewsDetailActivity.this,"收藏成功",Toast.LENGTH_SHORT).show();
                         break;
                     default:
                         break;

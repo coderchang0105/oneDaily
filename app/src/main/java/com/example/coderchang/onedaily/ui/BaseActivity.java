@@ -8,10 +8,13 @@ import android.view.Window;
 /**
  * Created by coderchang on 16/8/25.
  */
-public class BaseActivity extends AppCompatActivity{
+public abstract class BaseActivity extends AppCompatActivity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(getLayoutResId());
     }
+
+    abstract protected int getLayoutResId();
 }

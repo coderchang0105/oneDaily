@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Created by coderchang on 16/8/25.
  */
-public class MyCollectionActivity extends AppCompatActivity{
+public class MyCollectionActivity extends BaseActivity{
     private RecyclerView rvMyCollection;
     private Toolbar toolbar;
     private ImportantDatabaseHelper helper;
@@ -32,8 +32,6 @@ public class MyCollectionActivity extends AppCompatActivity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_my_collection);
         intView();
         initToolbar();
         initDatabase();
@@ -50,6 +48,11 @@ public class MyCollectionActivity extends AppCompatActivity{
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_my_collection;
     }
 
     private void initData() {

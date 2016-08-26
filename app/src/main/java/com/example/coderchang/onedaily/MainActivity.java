@@ -27,6 +27,7 @@ import com.example.coderchang.onedaily.adapter.RVMainAdapter;
 import com.example.coderchang.onedaily.doman.News;
 import com.example.coderchang.onedaily.doman.Story;
 import com.example.coderchang.onedaily.doman.TopStory;
+import com.example.coderchang.onedaily.ui.BaseActivity;
 import com.example.coderchang.onedaily.ui.MyCollectionActivity;
 import com.example.coderchang.onedaily.ui.NewsDetailActivity;
 import com.example.coderchang.onedaily.utils.DateUtils;
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
@@ -73,8 +74,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_main);
         carouselView = LayoutInflater.from(this).inflate(R.layout.layout_main_carousel, null);
         initToolbar();
         initNavigationView();
@@ -140,6 +139,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_main;
     }
 
     private void addTimerTask() {

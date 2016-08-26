@@ -24,7 +24,7 @@ import com.google.gson.Gson;
 /**
  * Created by coderchang on 16/8/21.
  */
-public class SplashActivity extends AppCompatActivity {
+public class SplashActivity extends BaseActivity {
     public static final String SPLASH_URL = "http://news-at.zhihu.com/api/4/start-image/1080*1776";
 
     public static final int SEND = 1;
@@ -58,8 +58,6 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_splash);
         initView();
         MyThread thread = new MyThread(SPLASH_URL, new NetUtil.StringCallback() {
 
@@ -99,6 +97,11 @@ public class SplashActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_splash;
     }
 
     private void initView() {
