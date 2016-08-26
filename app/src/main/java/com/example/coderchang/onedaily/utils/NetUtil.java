@@ -1,7 +1,10 @@
 package com.example.coderchang.onedaily.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.telecom.Call;
 
@@ -105,6 +108,14 @@ public class NetUtil {
         }
     }
 
-
+    public static boolean netIsAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isAvailable()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
