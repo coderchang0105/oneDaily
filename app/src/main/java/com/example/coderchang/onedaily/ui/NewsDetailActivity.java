@@ -177,7 +177,7 @@ public class NewsDetailActivity extends BaseActivity{
     }
 
     private void addStoryToDatabase() {
-        helper = new ImportantDatabaseHelper(NewsDetailActivity.this, "Collection.db", null, 1);
+        helper = ImportantDatabaseHelper.getInstance(NewsDetailActivity.this, "Collection.db", null, 1);
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues values = new ContentValues();
         if (topStory != null) {

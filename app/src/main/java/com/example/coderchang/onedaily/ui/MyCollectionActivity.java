@@ -61,7 +61,7 @@ public class MyCollectionActivity extends BaseActivity{
 
 
     private void initDatabase() {
-        helper = new ImportantDatabaseHelper(this, "Collection.db", null, 1);
+        helper = ImportantDatabaseHelper.getInstance(this, "Collection.db", null, 1);
         SQLiteDatabase db = helper.getWritableDatabase();
         Cursor cursor = db.query("Story", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
