@@ -21,8 +21,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(getLayoutResId());
-        if (!NetUtil.netIsAvailable(MyApplication.context)) {
-            Toast.makeText(MyApplication.context, "网络错误,请检查网络", Toast.LENGTH_SHORT).show();
+        if (!NetUtil.netIsAvailable(getApplicationContext())){
+            Toast.makeText(getApplicationContext(), "网络错误,请检查网络", Toast.LENGTH_SHORT).show();
             return;
         }
     }

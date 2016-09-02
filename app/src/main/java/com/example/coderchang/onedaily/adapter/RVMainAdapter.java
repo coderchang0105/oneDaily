@@ -2,33 +2,31 @@ package com.example.coderchang.onedaily.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.Adapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.example.coderchang.onedaily.MyApplication;
 import com.example.coderchang.onedaily.R;
 import com.example.coderchang.onedaily.doman.Story;
-import com.example.coderchang.onedaily.utils.NetUtil;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.net.ssl.HandshakeCompletedEvent;
 
 /**
  * Created by coderchang on 16/8/23.
  */
 public class RVMainAdapter extends RecyclerView.Adapter {
     private Context mContext;
-    private List<Story> mData;
+    private List<Story> mData = new ArrayList<>();
     private View mCarouselView;
+    private String mDate;
     public static final int TYPE_CAROUSEL = 0;
     public static final int TYPE_NORMAL = 1;
     public static final int TYPE_FOOTER = 2;
@@ -37,10 +35,20 @@ public class RVMainAdapter extends RecyclerView.Adapter {
 
     private OnItemClickListener clickListener;
 
+    public void setDate(String date) {
+        this.mDate = date;
+    }
 
-    public RVMainAdapter(Context context, List<Story> data) {
+    public String getDate() {
+        return mDate;
+    }
+
+    public RVMainAdapter(Context context) {
         this.mContext = context;
-        this.mData = data;
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -94,7 +102,6 @@ public class RVMainAdapter extends RecyclerView.Adapter {
             CarouselViewHolder viewHolder = (CarouselViewHolder) holder;
         }
         if (holder instanceof NormalViewHolder) {
-            final Handler handler = new Handler();
             final Story story = mData.get(position-1);
             final NormalViewHolder viewHolder = (NormalViewHolder) holder;
             viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -104,27 +111,25 @@ public class RVMainAdapter extends RecyclerView.Adapter {
                 }
             });
             viewHolder.tvRVItemTitle.setText(story.getTitle());
-            NetUtil.asyncImageGet(story.getImages().get(0), new NetUtil.ImageCallback() {
+            String url = story.getImages().get(0);
+            ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
                 @Override
-                public void onSuccess(final Bitmap bitmap) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            viewHolder.ivRVItemPic.setImageBitmap(bitmap);
-                        }
-                    });
+                public void onResponse(Bitmap bitmap) {
+                    viewHolder.ivRVItemPic.setImageBitmap(bitmap);
                 }
-
+            }, 0, 0, Bitmap.Config.RGB_565, new Response.ErrorListener() {
                 @Override
-                public void onFail(Exception e) {
-                    Toast.makeText(mContext, "获取ivRvItemPic失败", Toast.LENGTH_SHORT).show();
+                public void onErrorResponse(VolleyError volleyError) {
+
                 }
             });
+            MyApplication.getInstance().add(imageRequest);
         }
         if (holder instanceof BootViewHolder) {
             BootViewHolder viewHolder = (BootViewHolder) holder;
-            Log.d("TAG", "加载数据.....");
-            mListener.onLoad();
+            if (mListener != null) {
+                mListener.onLoad(mDate);
+            }
         }
 
     }
@@ -161,7 +166,7 @@ public class RVMainAdapter extends RecyclerView.Adapter {
 
 
     public interface OnLoadListener{
-        void onLoad();
+        void onLoad(String date);
     }
 
     public interface OnItemClickListener{

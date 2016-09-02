@@ -14,7 +14,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.coderchang.onedaily.MainActivity;
+import com.example.coderchang.onedaily.MyApplication;
 import com.example.coderchang.onedaily.R;
 import com.example.coderchang.onedaily.doman.SplashPic;
 import com.example.coderchang.onedaily.utils.MyThread;
@@ -27,75 +34,53 @@ import com.google.gson.Gson;
 public class SplashActivity extends BaseActivity {
     public static final String SPLASH_URL = "http://news-at.zhihu.com/api/4/start-image/1080*1776";
 
-    public static final int SEND = 1;
     private ImageView ivSplashPic;
 
     private SplashPic splashPic;
 
     private TextView tvSplashName;
 
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SEND:
-                    ivSplashPic.setImageBitmap((Bitmap) msg.obj);
-                    tvSplashName.setText(splashPic.getText());
-                    try {
-                        Thread.sleep(4000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    startActivity(new Intent(SplashActivity.this,MainActivity.class));
-                    finish();
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
+    private MyApplication helper;
 
     @Override
+
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        helper = MyApplication.getInstance();
         initView();
-        MyThread thread = new MyThread(SPLASH_URL, new NetUtil.StringCallback() {
-
+        StringRequest strRequest = new StringRequest(SPLASH_URL, new Response.Listener<String>() {
             @Override
-            public void onSuccess(String response) {
+            public void onResponse(String s) {
                 Gson gson = new Gson();
-                splashPic = gson.fromJson(response, SplashPic.class);
-                String url = splashPic.getImg().replaceAll("\"", "");
-                splashPic.setImg(url);
-            }
+                splashPic = gson.fromJson(s, SplashPic.class);
+                ImageRequest imgRequest = new ImageRequest(splashPic.getImg(), new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap bitmap) {
+                        ivSplashPic.setImageBitmap(bitmap);
+                        tvSplashName.setText(splashPic.getText());
+                        try {
+                            Thread.currentThread().sleep(3000);
+                            finish();
+                            startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 0, 0, Bitmap.Config.RGB_565, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
 
+                    }
+                });
+                helper.add(imgRequest);
+            }
+        }, new Response.ErrorListener() {
             @Override
-            public void onFail(Exception e) {
-                Toast.makeText(SplashActivity.this, "图片地址加载失败", Toast.LENGTH_SHORT).show();
+            public void onErrorResponse(VolleyError volleyError) {
+
             }
         });
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        NetUtil.asyncImageGet(splashPic.getImg(), new NetUtil.ImageCallback() {
-            @Override
-            public void onSuccess(Bitmap bitmap) {
-                Message message = new Message();
-                message.what = SEND;
-                message.obj = bitmap;
-                handler.sendMessage(message);
-            }
-
-            @Override
-            public void onFail(Exception e) {
-                Toast.makeText(SplashActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
-            }
-        });
+        helper.add(strRequest);
 
     }
 

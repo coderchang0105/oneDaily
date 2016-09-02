@@ -1,20 +1,20 @@
 package com.example.coderchang.onedaily.adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.example.coderchang.onedaily.MyApplication;
 import com.example.coderchang.onedaily.R;
 import com.example.coderchang.onedaily.doman.SimpleStory;
-import com.example.coderchang.onedaily.utils.NetUtil;
 
 import java.util.List;
 
@@ -51,23 +51,18 @@ public class RVCollectionAdapter extends RecyclerView.Adapter{
                 mListener.onItemClick(simpleStory);
             }
         });
-        final Handler handler = new Handler();
-        NetUtil.asyncImageGet(simpleStory.getImage(), new NetUtil.ImageCallback() {
+        ImageRequest imageRequest = new ImageRequest(simpleStory.getImage(), new Response.Listener<Bitmap>() {
             @Override
-            public void onSuccess(final Bitmap bitmap) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        viewHolder.imageView.setImageBitmap(bitmap);
-                    }
-                });
+            public void onResponse(Bitmap bitmap) {
+                viewHolder.imageView.setImageBitmap(bitmap);
             }
-
+        }, 0, 0, Bitmap.Config.RGB_565, new Response.ErrorListener() {
             @Override
-            public void onFail(Exception e) {
-                Toast.makeText(mContext, "获取ivRvItemPic失败", Toast.LENGTH_SHORT).show();
+            public void onErrorResponse(VolleyError volleyError) {
+
             }
         });
+        MyApplication.getInstance().add(imageRequest);
     }
 
     public static class CollectionViewHolder extends RecyclerView.ViewHolder{

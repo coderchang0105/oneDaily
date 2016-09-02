@@ -1,12 +1,10 @@
 package com.example.coderchang.onedaily;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,11 +15,13 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.example.coderchang.onedaily.adapter.CarouselAdapter;
 import com.example.coderchang.onedaily.adapter.RVMainAdapter;
 import com.example.coderchang.onedaily.doman.News;
@@ -31,15 +31,8 @@ import com.example.coderchang.onedaily.ui.BaseActivity;
 import com.example.coderchang.onedaily.ui.MyCollectionActivity;
 import com.example.coderchang.onedaily.ui.NewsDetailActivity;
 import com.example.coderchang.onedaily.utils.DateUtils;
-import com.example.coderchang.onedaily.utils.MyThread;
-import com.example.coderchang.onedaily.utils.NetUtil;
-import com.google.gson.Gson;
+import com.example.coderchang.onedaily.utils.GsonRequest;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -50,7 +43,9 @@ public class MainActivity extends BaseActivity {
     private DrawerLayout drawerLayout;
     private RecyclerView rvMainDaily;
     private RVMainAdapter adapter;
-    private News news;
+    private MyApplication helper;
+    public static final String LATEST_URL = "http://news-at.zhihu.com/api/4/news/latest";
+    public static final String BEFORE_URL = "http://news.at.zhihu.com/api/4/news/before/";
     private int currentItem;
 
     private LinearLayout llPoints;
@@ -61,31 +56,31 @@ public class MainActivity extends BaseActivity {
 
     private View carouselView;
 
-    private List<Story> storyList = new ArrayList<>();
-
-    private List<TopStory> topStoryList = new ArrayList<>();
-
     private ViewPager vpMainCarousel;
 
     private boolean loading = false;//是否在上拉加载
 
-    private String date;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        helper = MyApplication.getInstance();
         carouselView = LayoutInflater.from(this).inflate(R.layout.layout_main_carousel, null);
         initToolbar();
         initNavigationView();
         initView();
         initPointsGroup();
         addTimerTask();
-        initData();
-        adapter = new RVMainAdapter(MainActivity.this, storyList);
+        adapter = new RVMainAdapter(MainActivity.this);
         adapter.setCarouselView(carouselView);
         rvMainDaily.setLayoutManager(new LinearLayoutManager(this));
         rvMainDaily.setAdapter(adapter);
-        carouselAdapter = new CarouselAdapter(MainActivity.this, topStoryList);
+        setCarouselAdapter();
+        setCarousel();
+        sendANewsTask(LATEST_URL);
+    }
+
+    private void setCarouselAdapter() {
+        carouselAdapter = new CarouselAdapter(MainActivity.this);
         carouselAdapter.setOnItemClickListener(new CarouselAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(TopStory topStory) {
@@ -97,6 +92,20 @@ public class MainActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        adapter.setOnItemClickListener(new RVMainAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Story story) {
+                Toast.makeText(MainActivity.this, story.getTitle(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, NewsDetailActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("story", story);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void setCarousel() {
         vpMainCarousel.setOffscreenPageLimit(3);
         vpMainCarousel.setCurrentItem(0);
         vpMainCarousel.setAdapter(carouselAdapter);
@@ -121,26 +130,36 @@ public class MainActivity extends BaseActivity {
         });
         adapter.setOnLoadListener(new RVMainAdapter.OnLoadListener() {
             @Override
-            public void onLoad() {
-                Log.d("TAG", "date = " + date);
-                date = DateUtils.preDate(date);
-                new StoryTask().execute("http://news.at.zhihu.com/api/4/news/before/" + date);
+            public void onLoad(String date) {
+                if (date != null) {
+                    Log.d("TAG", "date = " + date);
+                    date = DateUtils.preDate(date);
+                    sendANewsTask(BEFORE_URL + date);
+                }
             }
         });
-        adapter.setOnItemClickListener(new RVMainAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Story story) {
-                Toast.makeText(MainActivity.this, story.getTitle(), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, NewsDetailActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("story", story);
-                intent.putExtras(bundle);
-                startActivity(intent);
-            }
-        });
-
     }
 
+    private void sendANewsTask(String url) {
+        GsonRequest<News> gsonRequest = new GsonRequest<>(Request.Method.GET,url, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+
+            }
+        }, News.class, new Response.Listener<News>() {
+            @Override
+            public void onResponse(News news) {
+                List<Story> storyList = news.getStories();
+                List<TopStory> topStoryList = news.getTop_stories();
+                adapter.addData(storyList);
+                adapter.setDate(news.getDate());
+                if (carouselAdapter.getData().size() == 0) {
+                    carouselAdapter.addData(topStoryList);
+                }
+            }
+        });
+        helper.add(gsonRequest);
+    }
     @Override
     protected int getLayoutResId() {
         return R.layout.activity_main;
@@ -188,54 +207,15 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void initData() {
-        MyThread myThread = new MyThread("http://news-at.zhihu.com/api/4/news/latest", new NetUtil.StringCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.d("TAG", "news latest = " + response);
-                //parseJSONWithJSONObject(response);
-
-                parseJSONWithGson(response);
-                formatUrl(storyList);
-                for (int i = 0; i < storyList.size(); i++) {
-                    Log.d("TAG", "formatted story = " + storyList.get(i).getImages().get(0));
-
-                }
-
-
-            }
-
-            @Override
-            public void onFail(Exception e) {
-
-            }
-        });
-        myThread.start();
-        try {
-            myThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void parseJSONWithGson(String response) {
-        Gson gson = new Gson();
-        News news = gson.fromJson(response, News.class);
-        date = news.getDate();
-        storyList = news.getStories();
-        topStoryList = news.getTop_stories();
-
-    }
 
 
 
-    private void formatUrl(List<Story> storyList) {
-        for (int i = 0; i < storyList.size(); i++) {
-            String formattedUrl = storyList.get(i).getImages().get(0).replaceAll("\"", "");
-            storyList.get(i).getImages().set(0, formattedUrl);
-        }
-    }
+//    private void formatUrl(List<Story> storyList) {
+//        for (int i = 0; i < storyList.size(); i++) {
+//            String formattedUrl = storyList.get(i).getImages().get(0).replaceAll("\"", "");
+//            storyList.get(i).getImages().set(0, formattedUrl);
+//        }
+//    }
 
     private void initView() {
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -297,68 +277,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-
-    class StoryTask extends AsyncTask<String, Void, List<Story>> {
-        private List<Story> tempStoryList;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected List<Story> doInBackground(String... params) {
-
-            NetUtil.syncStringGet(params[0], new NetUtil.StringCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    Gson gson = new Gson();
-                    News news = gson.fromJson(response, News.class);
-                    tempStoryList = news.getStories();
-                    formatUrl(tempStoryList);
-                }
-
-                @Override
-                public void onFail(Exception e) {
-
-                }
-            });
-            return tempStoryList;
-        }
-
-        @Override
-        protected void onPostExecute(List<Story> stories) {
-            super.onPostExecute(stories);
-            adapter.addData(stories);
-        }
-    }
-
-
-
-
-    private void parseJSONWithJSONObject(String response) {
-        try {
-            JSONObject object = new JSONObject(response);
-            JSONArray jsonArray = object.getJSONArray("stories");
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject object1 = jsonArray.getJSONObject(i);
-                Story story = new Story();
-                story.setTitle(object1.getString("title"));
-                story.setGa_prefix(object1.getString("ga_prefix"));
-                JSONArray arrayImages = object1.getJSONArray("images");
-                List<String> images = new ArrayList<>();
-                for (int j = 0; j < arrayImages.length(); j++) {
-                    images.add(arrayImages.getString(j));
-                }
-                story.setImages(images);
-                story.setType(object1.getInt("type"));
-                story.setId(object1.getInt("id"));
-                storyList.add(story);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 
     private Timer timer;
 

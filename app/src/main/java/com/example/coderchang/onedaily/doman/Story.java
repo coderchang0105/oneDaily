@@ -65,4 +65,16 @@ public class Story implements Serializable{
     public void setType(int type) {
         this.type = type;
     }
+
+    @Override
+    public String toString() {
+        return "Story{" +
+                "ga_prefix='" + ga_prefix + '\'' +
+                ", title='" + title + '\'' +
+                ", images=" + images +
+                ", type=" + type +
+                ", id=" + id +
+                ", multipic=" + multipic +
+                '}';
+    }
 }
