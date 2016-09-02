@@ -77,4 +77,5 @@ public class Story implements Serializable{
                 ", multipic=" + multipic +
                 '}';
     }
+
 }

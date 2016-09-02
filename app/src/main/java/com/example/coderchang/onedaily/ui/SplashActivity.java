@@ -48,6 +48,11 @@ public class SplashActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         helper = MyApplication.getInstance();
         initView();
+        if (!NetUtil.netIsAvailable(this)) {
+            Toast.makeText(this, "网络错误,请检查网络",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         StringRequest strRequest = new StringRequest(SPLASH_URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String s) {

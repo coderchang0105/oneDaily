@@ -14,6 +14,7 @@ import android.view.Window;
 
 import com.example.coderchang.onedaily.R;
 import com.example.coderchang.onedaily.adapter.RVCollectionAdapter;
+import com.example.coderchang.onedaily.db.CollectionDB;
 import com.example.coderchang.onedaily.db.ImportantDatabaseHelper;
 import com.example.coderchang.onedaily.doman.SimpleStory;
 
@@ -26,12 +27,13 @@ import java.util.List;
 public class MyCollectionActivity extends BaseActivity{
     private RecyclerView rvMyCollection;
     private Toolbar toolbar;
-    private ImportantDatabaseHelper helper;
+    private CollectionDB collectionDB;
     private List<SimpleStory> simpleStoryList = new ArrayList<>();
     private RVCollectionAdapter adapter;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        collectionDB = CollectionDB.getInstance(this);
         intView();
         initToolbar();
         initDatabase();
@@ -61,19 +63,20 @@ public class MyCollectionActivity extends BaseActivity{
 
 
     private void initDatabase() {
-        helper = ImportantDatabaseHelper.getInstance(this, "Collection.db", null, 1);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        Cursor cursor = db.query("Story", null, null, null, null, null, null);
-        if (cursor.moveToFirst()) {
-            do {
-                SimpleStory simpleStory = new SimpleStory();
-                simpleStory.setImage(cursor.getString(cursor.getColumnIndex("image")));
-                simpleStory.setStoryId(cursor.getString(cursor.getColumnIndex("storyId")));
-                simpleStory.setTitle(cursor.getString(cursor.getColumnIndex("title")));
-                simpleStoryList.add(simpleStory);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
+//        helper = ImportantDatabaseHelper.getInstance(this, "Collection.db", null, 1);
+//        SQLiteDatabase db = helper.getWritableDatabase();
+//        Cursor cursor = db.query("Story", null, null, null, null, null, null);
+//        if (cursor.moveToFirst()) {
+//            do {
+//                SimpleStory simpleStory = new SimpleStory();
+//                simpleStory.setImage(cursor.getString(cursor.getColumnIndex("image")));
+//                simpleStory.setStoryId(cursor.getString(cursor.getColumnIndex("storyId")));
+//                simpleStory.setTitle(cursor.getString(cursor.getColumnIndex("title")));
+//                simpleStoryList.add(simpleStory);
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
+        simpleStoryList = collectionDB.loadSimpleStoryList();
     }
 
     private void initToolbar() {

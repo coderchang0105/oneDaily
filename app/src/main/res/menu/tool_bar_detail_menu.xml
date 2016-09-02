@@ -9,6 +9,6 @@
     <item android:id="@+id/action_detail_important"
         app:showAsAction="ifRoom"
         android:title="important"
-        android:icon="@mipmap/tool_bar_important"
+        android:icon="@drawable/fav_normal"
         />
 </menu>

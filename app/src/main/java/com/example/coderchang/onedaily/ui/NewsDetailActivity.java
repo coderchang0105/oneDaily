@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -16,6 +17,7 @@ import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.example.coderchang.onedaily.R;
+import com.example.coderchang.onedaily.db.CollectionDB;
 import com.example.coderchang.onedaily.db.ImportantDatabaseHelper;
 import com.example.coderchang.onedaily.doman.News;
 import com.example.coderchang.onedaily.doman.NewsDetail;
@@ -36,11 +38,13 @@ public class NewsDetailActivity extends BaseActivity{
     private Story story;
     private TopStory topStory;
     private SimpleStory simpleStory;
-    private ImportantDatabaseHelper helper;
+    private CollectionDB collectionDB;
     private NewsDetail newsDetail;
+    private boolean favorite =false;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        collectionDB = CollectionDB.getInstance(this);
         initView();
         initToolbar();
         Intent intent = getIntent();
@@ -49,12 +53,19 @@ public class NewsDetailActivity extends BaseActivity{
         simpleStory = null;
         if (intent.getSerializableExtra("story") != null) {
             story = (Story) intent.getSerializableExtra("story");
+            favorite = collectionDB.isFavorite(story);
         }
         if (intent.getSerializableExtra("topStory") != null) {
             topStory = (TopStory) intent.getSerializableExtra("topStory");
+            favorite = collectionDB.isFavorite(topStory);
         }
         if (intent.getSerializableExtra("simpleStory") != null){
             simpleStory = (SimpleStory) intent.getSerializableExtra("simpleStory");
+            favorite = collectionDB.isFavorite(simpleStory);
+        }
+        if (!NetUtil.netIsAvailable(this)) {
+            Toast.makeText(this, "网络错误,请检查网络", Toast.LENGTH_SHORT).show();
+            return;
         }
         if (story != null) {
             new Thread(new Runnable() {
@@ -133,6 +144,10 @@ public class NewsDetailActivity extends BaseActivity{
                 }
             }).start();
         }
+        if (favorite) {
+            tbNewsDetail.getMenu().getItem(1).setIcon(R.drawable.fav_active);
+        }
+
 
 
     }
@@ -150,6 +165,7 @@ public class NewsDetailActivity extends BaseActivity{
             }
         });
         tbNewsDetail.inflateMenu(R.menu.tool_bar_detail_menu);
+
         tbNewsDetail.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -163,8 +179,13 @@ public class NewsDetailActivity extends BaseActivity{
                         startActivity(Intent.createChooser(shareIntent, "分享到"));
                         break;
                     case R.id.action_detail_important:
-                        addStoryToDatabase();
-                        Toast.makeText(NewsDetailActivity.this,"收藏成功",Toast.LENGTH_SHORT).show();
+                        if (!favorite) {
+                            favorite = true;
+                            item.setIcon(R.drawable.fav_active);
+                            addStoryToDatabase();
+                            Toast.makeText(NewsDetailActivity.this,"收藏成功",Toast.LENGTH_SHORT).show();
+                        }
+
                         break;
                     default:
                         break;
@@ -177,23 +198,12 @@ public class NewsDetailActivity extends BaseActivity{
     }
 
     private void addStoryToDatabase() {
-        helper = ImportantDatabaseHelper.getInstance(NewsDetailActivity.this, "Collection.db", null, 1);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        ContentValues values = new ContentValues();
         if (topStory != null) {
-            values.put("title", topStory.getTitle());
-            values.put("image", topStory.getImage());
-            values.put("storyId", topStory.getId());
+            collectionDB.saveSimpleStory(topStory);
         }
         if (story != null) {
-            values.put("title", story.getTitle());
-            values.put("image", story.getImages().get(0));
-            values.put("storyId", story.getId());
+            collectionDB.saveSimpleStory(story);
         }
-
-        db.insert("Story", null, values);
-        values.clear();
-
     }
 
     private void initView() {

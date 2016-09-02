@@ -56,7 +56,6 @@ public class CarouselAdapter extends PagerAdapter{
         TextView textView = (TextView) view.findViewById(R.id.tv_carousel_title);
         textView.setText(mData.get(position).getTitle());
         final ImageView imageView = (ImageView) view.findViewById(R.id.iv_carousel_pic);
-
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

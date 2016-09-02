@@ -97,7 +97,7 @@ public class RVMainAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof CarouselViewHolder) {
             CarouselViewHolder viewHolder = (CarouselViewHolder) holder;
         }
@@ -108,6 +108,7 @@ public class RVMainAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     clickListener.onItemClick(story);
+
                 }
             });
             viewHolder.tvRVItemTitle.setText(story.getTitle());

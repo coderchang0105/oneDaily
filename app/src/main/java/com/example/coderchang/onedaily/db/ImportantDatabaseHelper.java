@@ -9,23 +9,9 @@ import android.widget.Toast;
  * Created by coderchang on 16/8/25.
  */
 public class ImportantDatabaseHelper extends SQLiteOpenHelper {
-    private static ImportantDatabaseHelper singleton;
-
-    private ImportantDatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public ImportantDatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         this.mContext = context;
-    }
-
-    public static ImportantDatabaseHelper getInstance(Context context,String name,SQLiteDatabase.CursorFactory factory,int version) {
-        if (singleton == null) {
-            synchronized (ImportantDatabaseHelper.class) {
-                if (singleton == null) {
-                    singleton = new ImportantDatabaseHelper(context, name, factory, version);
-
-                }
-            }
-        }
-        return singleton;
     }
 
     private Context mContext;
