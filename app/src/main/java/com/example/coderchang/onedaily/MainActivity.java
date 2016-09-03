@@ -3,6 +3,7 @@ package com.example.coderchang.onedaily;
 import android.content.Intent;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -33,6 +34,7 @@ import com.example.coderchang.onedaily.doman.TopStory;
 import com.example.coderchang.onedaily.ui.BaseActivity;
 import com.example.coderchang.onedaily.ui.MyCollectionActivity;
 import com.example.coderchang.onedaily.ui.NewsDetailActivity;
+import com.example.coderchang.onedaily.ui.fragment.GankFragment;
 import com.example.coderchang.onedaily.ui.fragment.MainFragment;
 import com.example.coderchang.onedaily.utils.DateUtils;
 import com.example.coderchang.onedaily.utils.GsonRequest;
@@ -46,6 +48,12 @@ public class MainActivity extends BaseActivity{
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    private FragmentManager fm;
+    private MainFragment mainFragment;
+    private GankFragment gankFragment;
+    private Fragment tmpFragment;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +67,18 @@ public class MainActivity extends BaseActivity{
             Toast.makeText(this, "网络错误,请检查网络",Toast.LENGTH_SHORT).show();
             return;
         }
-        setMainFragment();
+        setDefaultFragment();
     }
 
-    private void setMainFragment() {
-        FragmentManager fm = getSupportFragmentManager();
+    private void setDefaultFragment() {
+        fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
 
-        MainFragment mainFragment = new MainFragment();
-        transaction.replace(R.id.main_frame_layout, mainFragment);
-        transaction.commit();
+        if (mainFragment == null) {
+            mainFragment = new MainFragment();
+        }
+        transaction.add(R.id.main_frame_layout, mainFragment).commit();
+        tmpFragment = mainFragment;
     }
 
     @Override
@@ -93,15 +103,31 @@ public class MainActivity extends BaseActivity{
             public boolean onNavigationItemSelected(MenuItem item) {
                 drawerLayout.closeDrawer(Gravity.LEFT);
                 switch (item.getItemId()) {
+                    case R.id.navigation_item_main:
+                        toolbar.setTitle("首页");
+                        if (mainFragment == null) {
+                            mainFragment = new MainFragment();
+                        }
+                        switchFragment(mainFragment);
+                        break;
                     case R.id.navigation_item_guoke:
+                        toolbar.setTitle("果壳");
                         Toast.makeText(MainActivity.this, "guoke", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.navigation_item_douban:
+                        toolbar.setTitle("豆瓣");
                         Toast.makeText(MainActivity.this, "douban", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.navigation_item_important:
                         Toast.makeText(MainActivity.this, "我的收藏", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(MainActivity.this, MyCollectionActivity.class));
+                        break;
+                    case R.id.navigation_item_gank:
+                        toolbar.setTitle("福利");
+                        if (gankFragment == null) {
+                            gankFragment = new GankFragment();
+                        }
+                        switchFragment(gankFragment);
                         break;
                     default:
                         break;
@@ -140,5 +166,15 @@ public class MainActivity extends BaseActivity{
         });
     }
 
-
+    private void switchFragment(Fragment currentFragment) {
+        if (tmpFragment != currentFragment) {
+            FragmentTransaction transaction = fm.beginTransaction();
+            if (!currentFragment.isAdded()) {
+                transaction.hide(tmpFragment).add(R.id.main_frame_layout, currentFragment).commit();
+            } else {
+                transaction.hide(tmpFragment).show(currentFragment).commit();
+            }
+            tmpFragment = currentFragment;
+        }
+    }
 }

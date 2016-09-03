@@ -111,7 +111,7 @@ public class NetUtil {
     public static boolean netIsAvailable(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isAvailable()) {
+          if (networkInfo != null && networkInfo.isAvailable()) {
             return true;
         } else {
             return false;

@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:title="首页"
+        android:id="@+id/navigation_item_main"
+        android:icon="@mipmap/tool_bar_important"
+        />
+    <item
         android:title="收藏夹"
         android:id="@+id/navigation_item_important"
         android:icon="@mipmap/tool_bar_important"
@@ -12,4 +17,8 @@
     <item
         android:id="@+id/navigation_item_douban"
         android:title="豆瓣一刻" />
+    <item
+        android:id="@+id/navigation_item_gank"
+        android:title="干货"
+        />
 </menu>

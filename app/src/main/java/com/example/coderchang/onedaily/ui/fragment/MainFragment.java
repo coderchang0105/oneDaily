@@ -38,7 +38,7 @@ import java.util.TimerTask;
 /**
  * Created by coderchang on 16/9/2.
  */
-public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener{
+public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     private RecyclerView rvMainDaily;
     private SwipeRefreshLayout refreshLayout;
     private RVMainAdapter adapter;
@@ -59,6 +59,11 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private boolean loading = false;//是否在上拉加载
     private View view;
+    private boolean isFirstEnter = true;
+
+
+
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -83,15 +88,16 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
         rvMainDaily = (RecyclerView) view.findViewById(R.id.rv_main_daily);
         vpMainCarousel = (ViewPager) carouselView.findViewById(R.id.vp_main_carousel);
-        refreshLayout = (SwipeRefreshLayout)view.findViewById(R.id.refresh_layout);
+        refreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
     }
+
     private void setRefreshLayout() {
         refreshLayout.setOnRefreshListener(this);
         refreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
-
+        refreshLayout.setRefreshing(true);
     }
 
     private void setCarouselAdapter() {
@@ -153,7 +159,7 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void sendANewsTask(String url) {
-        GsonRequest<News> gsonRequest = new GsonRequest<>(Request.Method.GET,url, new Response.ErrorListener() {
+        GsonRequest<News> gsonRequest = new GsonRequest<>(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
 
@@ -167,6 +173,10 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 adapter.setDate(news.getDate());
                 if (carouselAdapter.getData().size() == 0) {
                     carouselAdapter.addData(topStoryList);
+                    if (isFirstEnter) {
+                        isFirstEnter = false;
+                        refreshLayout.setRefreshing(false);
+                    }
                 }
             }
         });
@@ -195,7 +205,7 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                 });
             }
-        },0,7000);
+        }, 0, 7000);
     }
 
     private void initPointsGroup() {
@@ -211,9 +221,10 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             layoutParams.leftMargin = 5;
             layoutParams.rightMargin = 5;
-            llPoints.addView(imageView,layoutParams);
+            llPoints.addView(imageView, layoutParams);
         }
     }
+
     private Timer timer;
 
     private void resetIndicator() {
@@ -225,6 +236,8 @@ public class MainFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     @Override
     public void onRefresh() {
-        refreshLayout.setRefreshing(false);
+        if (!isFirstEnter) {
+            refreshLayout.setRefreshing(false);
+        }
     }
 }
